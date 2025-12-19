@@ -1,3 +1,4 @@
+
 # Online College Voting System 🗳️
 
 > A generic, secure, and modern voting platform built with the MERN Stack.
