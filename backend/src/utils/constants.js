@@ -1,0 +1,35 @@
+/**
+ * Keep enums/strings in one place to avoid typos across codebase.
+ */
+
+const ROLES = {
+  VOTER: 'VOTER',
+  CANDIDATE: 'CANDIDATE',
+  ADMIN: 'ADMIN'
+};
+
+const ADMIN_TYPES = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ELECTION_ADMIN: 'ELECTION_ADMIN',
+  VERIFICATION_ADMIN: 'VERIFICATION_ADMIN'
+};
+
+const APPROVAL_STATUS = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+const ELECTION_STATUS = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  RUNNING: 'RUNNING',
+  ENDED: 'ENDED'
+};
+
+module.exports = {
+  ROLES,
+  ADMIN_TYPES,
+  APPROVAL_STATUS,
+  ELECTION_STATUS
+};
