@@ -155,52 +155,70 @@ function ResultsTab() {
           </SelectContent>
         </Select>
         <div className="ml-auto flex gap-2">
-            <Button variant="outline" onClick={downloadPdf} disabled={!analytics}><FileBarChart className="mr-2 h-4 w-4" /> PDF</Button>
-            <Button variant="outline" onClick={downloadExcel} disabled={!analytics}><FileBarChart className="mr-2 h-4 w-4" /> Excel</Button>
+          <Button variant="outline" onClick={downloadPdf} disabled={!analytics}>
+            <FileBarChart className="mr-2 h-4 w-4" /> PDF
+          </Button>
+          <Button variant="outline" onClick={downloadExcel} disabled={!analytics}>
+            <FileBarChart className="mr-2 h-4 w-4" /> Excel
+          </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>
+        <div className="flex justify-center p-8">
+          <Loader2 className="animate-spin" />
+        </div>
       ) : analytics ? (
         <div className="grid gap-4">
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Total Votes</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{analytics.summary.totalVotesCast}</div></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Positions</CardTitle></CardHeader>
-                    <CardContent><div className="text-2xl font-bold">{analytics.chart.length}</div></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Status</CardTitle></CardHeader>
-                    <CardContent><Badge>{analytics.election.status}</Badge></CardContent>
-                </Card>
-            </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total Votes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.summary.totalVotesCast}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Positions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analytics.chart.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge>{analytics.election.status}</Badge>
+              </CardContent>
+            </Card>
+          </div>
 
-            {analytics.chart.map((pos: AnalyticsPosition) => (
-                <Card key={pos.positionId}>
-                    <CardHeader>
-                        <CardTitle>{pos.title}</CardTitle>
-                        <CardDescription>Total Votes: {pos.totalVotes}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={pos.series}>
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="votes" fill="#8884d8">
-                                    {pos.series.map((item: AnalyticsSeriesItem, index: number) => (
-                                        <Cell key={`cell-${item.candidateUserId ?? index}`} fill={index % 2 === 0 ? "#8884d8" : "#82ca9d"} />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </CardContent>
-                </Card>
-            ))}
+          {analytics.chart.map((pos: AnalyticsPosition) => (
+            <Card key={pos.positionId}>
+              <CardHeader>
+                <CardTitle>{pos.title}</CardTitle>
+                <CardDescription>Total Votes: {pos.totalVotes}</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={pos.series}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="votes" fill="#8884d8">
+                      {pos.series.map((item: AnalyticsSeriesItem, index: number) => (
+                        <Cell key={`cell-${item.candidateUserId ?? index}`} fill={index % 2 === 0 ? "#8884d8" : "#82ca9d"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : (
         <div className="text-center text-muted-foreground p-8">Select an election to view analytics</div>
@@ -356,12 +374,12 @@ function ElectionsTab() {
 
   const handlePublish = async (id: string) => {
     try {
-        await publishResults(id)
-        toast.success("Results published!")
-        fetchElections()
+      await publishResults(id)
+      toast.success("Results published!")
+      fetchElections()
     } catch (error) {
-        console.error(error)
-        toast.error("Failed to publish results")
+      console.error(error)
+      toast.error("Failed to publish results")
     }
   }
 
@@ -397,23 +415,29 @@ function ElectionsTab() {
                 <TableRow key={e._id}>
                   <TableCell className="font-medium">{e.name}</TableCell>
                   <TableCell>
-                    <Badge variant={e.status === "RUNNING" ? "default" : e.status === "ENDED" ? "secondary" : "outline">
+                    <Badge variant={e.status === "RUNNING" ? "default" : e.status === "ENDED" ? "secondary" : "outline"}>
                       {e.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{e.positions?.length || 0}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                        {e.status === "DRAFT" && (
-                             <Button size="sm" onClick={() => handleStart(e._id)}><Play className="mr-2 h-3 w-3" /> Start</Button>
-                        )}
-                        {e.status === "RUNNING" && (
-                             <Button size="sm" variant="destructive" onClick={() => handleStop(e._id)}><Square className="mr-2 h-3 w-3" /> Stop</Button>
-                        )}
-                        {e.status === "ENDED" && !e.resultsPublished && (
-                             <Button size="sm" variant="outline" onClick={() => handlePublish(e._id)}><FileBarChart className="mr-2 h-3 w-3" /> Publish</Button>
-                        )}
-                        <AddPositionDialog electionId={e._id} onSuccess={fetchElections} />
+                      {e.status === "DRAFT" && (
+                        <Button size="sm" onClick={() => handleStart(e._id)}>
+                          <Play className="mr-2 h-3 w-3" /> Start
+                        </Button>
+                      )}
+                      {e.status === "RUNNING" && (
+                        <Button size="sm" variant="destructive" onClick={() => handleStop(e._id)}>
+                          <Square className="mr-2 h-3 w-3" /> Stop
+                        </Button>
+                      )}
+                      {e.status === "ENDED" && !e.resultsPublished && (
+                        <Button size="sm" variant="outline" onClick={() => handlePublish(e._id)}>
+                          <FileBarChart className="mr-2 h-3 w-3" /> Publish
+                        </Button>
+                      )}
+                      <AddPositionDialog electionId={e._id} onSuccess={fetchElections} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -427,122 +451,122 @@ function ElectionsTab() {
 }
 
 function CreateElectionDialog({ onSuccess }: { onSuccess: () => void }) {
-    const [name, setName] = useState("")
-    const [desc, setDesc] = useState("")
-    const [autoClose, setAutoClose] = useState(false)
-    const [endsAt, setEndsAt] = useState("")
-    
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
-        try {
-            await createElection({ 
-                name, 
-                description: desc, 
-                autoCloseEnabled: autoClose,
-                endsAt: autoClose && endsAt ? new Date(endsAt).toISOString() : undefined
-            })
-            toast.success("Election created!")
-            onSuccess()
-        } catch (error) {
-            // Extract message safely
-            let msg = "Failed to create"
-            if (typeof error === 'object' && error !== null && 'response' in error) {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              msg = (error as any)?.response?.data?.message || msg
-            }
-            console.error(error)
-            toast.error(msg)
-        }
+  const [name, setName] = useState("")
+  const [desc, setDesc] = useState("")
+  const [autoClose, setAutoClose] = useState(false)
+  const [endsAt, setEndsAt] = useState("")
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    try {
+      await createElection({
+        name,
+        description: desc,
+        autoCloseEnabled: autoClose,
+        endsAt: autoClose && endsAt ? new Date(endsAt).toISOString() : undefined
+      })
+      toast.success("Election created!")
+      onSuccess()
+    } catch (error) {
+      // Extract message safely
+      let msg = "Failed to create"
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        msg = (error as any)?.response?.data?.message || msg
+      }
+      console.error(error)
+      toast.error(msg)
     }
+  }
 
-    return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Create New Election</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Election Name</Label>
-                    <Input value={name} onChange={(e) => setName(e.target.value)} required />
-                </div>
-                <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                    <input 
-                        type="checkbox" 
-                        id="autoClose" 
-                        className="h-4 w-4 rounded border-gray-300"
-                        aria-label="Enable auto-close timer"
-                        checked={autoClose}
-                        onChange={(e) => setAutoClose(e.target.checked)}
-                    />
-                    <Label htmlFor="autoClose">Enable Auto-Close Timer</Label>
-                </div>
+  return (
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Create New Election</DialogTitle>
+      </DialogHeader>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label>Election Name</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+          <Label>Description</Label>
+          <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} />
+        </div>
 
-                {autoClose && (
-                    <div className="space-y-2">
-                        <Label>End Date & Time</Label>
-                        <Input 
-                            type="datetime-local" 
-                            value={endsAt} 
-                            onChange={(e) => setEndsAt(e.target.value)} 
-                            required={autoClose}
-                        />
-                    </div>
-                )}
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="autoClose"
+            className="h-4 w-4 rounded border-gray-300"
+            aria-label="Enable auto-close timer"
+            checked={autoClose}
+            onChange={(e) => setAutoClose(e.target.checked)}
+          />
+          <Label htmlFor="autoClose">Enable Auto-Close Timer</Label>
+        </div>
 
-                <DialogFooter>
-                    <Button type="submit">Create</Button>
-                </DialogFooter>
-            </form>
-        </DialogContent>
-    )
+        {autoClose && (
+          <div className="space-y-2">
+            <Label>End Date & Time</Label>
+            <Input
+              type="datetime-local"
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
+              required={autoClose}
+            />
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button type="submit">Create</Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  )
 }
 
 function AddPositionDialog({ electionId, onSuccess }: { electionId: string, onSuccess: () => void }) {
-    const [open, setOpen] = useState(false)
-    const [title, setTitle] = useState("")
-    const [seats, setSeats] = useState(1)
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState("")
+  const [seats, setSeats] = useState(1)
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
-        try {
-            await addPosition(electionId, { title, seats })
-            toast.success("Position added!")
-            setOpen(false)
-            onSuccess()
-        } catch (error) {
-            console.error(error)
-            toast.error("Failed to add position")
-        }
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    try {
+      await addPosition(electionId, { title, seats })
+      toast.success("Position added!")
+      setOpen(false)
+      onSuccess()
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to add position")
     }
+  }
 
-    return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button size="sm" variant="ghost">Add Position</Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add Position</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label>Position Title (e.g. President)</Label>
-                        <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Seats</Label>
-                        <Input type="number" min={1} value={seats} onChange={(e) => setSeats(Number(e.target.value))} required />
-                    </div>
-                    <DialogFooter>
-                        <Button type="submit">Add</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    )
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost">Add Position</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Position</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Position Title (e.g. President)</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label>Seats</Label>
+            <Input type="number" min={1} value={seats} onChange={(e) => setSeats(Number(e.target.value))} required />
+          </div>
+          <DialogFooter>
+            <Button type="submit">Add</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }
