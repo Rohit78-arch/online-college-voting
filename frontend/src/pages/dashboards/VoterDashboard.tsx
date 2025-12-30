@@ -12,47 +12,62 @@ import { getMyVoteStatus, listElections } from "@/lib/apiEndpoints"
 import type { Election } from "@/types/election"
 
 export default function VoterDashboard() {
-  const [loading, setLoading] = useState(true)
-  const [showAll, setShowAll] = useState(false)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [showAll, setShowAll] = useState<boolean>(false)
   const [elections, setElections] = useState<Election[]>([])
-  const [voteStatusByElectionId, setVoteStatusByElectionId] = useState<Record<string, boolean>>({})
+  const [voteStatusByElectionId, setVoteStatusByElectionId] =
+    useState<Record<string, boolean>>({})
 
+  // Fetch elections
   useEffect(() => {
-    ;(async () => {
+    let cancelled = false
+
+    const fetchElections = async () => {
       setLoading(true)
       try {
         const data = await listElections()
-        setElections(data)
-      } catch (err) {
-        toast.error((err as any)?.response?.data?.message || "Failed to load elections")
+        if (!cancelled) setElections(data)
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : "Failed to load elections"
+        toast.error(message)
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
-    })()
+    }
+
+    fetchElections()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const running = useMemo(() => elections.filter((e) => e.status === "RUNNING"), [elections])
-  const visible = useMemo(() => (showAll ? elections : running), [elections, running, showAll])
+  const running = useMemo(
+    () => elections.filter((e) => e.status === "RUNNING"),
+    [elections]
+  )
 
-  // Fetch vote-status for visible elections (so we can show "VOTED" badge)
+  const visible = useMemo(
+    () => (showAll ? elections : running),
+    [showAll, elections, running]
+  )
+
+  // Fetch vote status
   useEffect(() => {
-    if (loading) return
-
-    const ids = visible.map((e) => e._id)
-    if (!ids.length) return
+    if (loading || visible.length === 0) return
 
     let cancelled = false
 
-    ;(async () => {
+    const fetchVoteStatus = async () => {
       try {
-        const pairs = await Promise.all(
-          ids.map(async (id) => {
+        const results = await Promise.all(
+          visible.map(async (e) => {
             try {
-              const s = await getMyVoteStatus(id)
-              return [id, s.hasVoted] as const
+              const res = await getMyVoteStatus(e._id)
+              return [e._id, res.hasVoted] as const
             } catch {
-              // If status cannot be fetched (edge), default to false.
-              return [id, false] as const
+              return [e._id, false] as const
             }
           })
         )
@@ -61,13 +76,17 @@ export default function VoterDashboard() {
 
         setVoteStatusByElectionId((prev) => {
           const next = { ...prev }
-          for (const [id, hasVoted] of pairs) next[id] = hasVoted
+          results.forEach(([id, voted]) => {
+            next[id] = voted
+          })
           return next
         })
       } catch {
-        // no-op
+        // silent fail
       }
-    })()
+    }
+
+    fetchVoteStatus()
 
     return () => {
       cancelled = true
@@ -75,17 +94,25 @@ export default function VoterDashboard() {
   }, [loading, visible])
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} className="space-y-4">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="space-y-4"
+    >
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Voter Dashboard</h1>
-          <p className="text-sm text-muted-foreground">RUNNING elections are shown by default.</p>
+          <p className="text-sm text-muted-foreground">
+            RUNNING elections are shown by default.
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setShowAll((v) => !v)}>
             {showAll ? "Show RUNNING only" : "View all"}
           </Button>
+
           <Button asChild>
             <Link to="/">Switch role</Link>
           </Button>
@@ -96,6 +123,7 @@ export default function VoterDashboard() {
         <CardHeader>
           <CardTitle className="text-base">Elections</CardTitle>
         </CardHeader>
+
         <CardContent>
           {loading ? (
             <div className="grid gap-3 md:grid-cols-2">
@@ -103,13 +131,19 @@ export default function VoterDashboard() {
               <Skeleton className="h-[190px]" />
             </div>
           ) : visible.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              {showAll ? "No elections found." : "No RUNNING elections right now."}
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {showAll
+                ? "No elections found."
+                : "No RUNNING elections right now."}
+            </p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {visible.map((e) => (
-                <ElectionCard key={e._id} election={e} hasVoted={voteStatusByElectionId[e._id]} />
+                <ElectionCard
+                  key={e._id}
+                  election={e}
+                  hasVoted={voteStatusByElectionId[e._id] ?? false}
+                />
               ))}
             </div>
           )}
