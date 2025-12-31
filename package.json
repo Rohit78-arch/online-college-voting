@@ -1,0 +1,27 @@
+{
+  "name": "online-college-voting",
+  "version": "1.0.0",
+  "description": "🗳️ Online College Voting System",
+  "main": "index.js",
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rohit78-arch/online-college-voting.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Rohit78-arch/online-college-voting/issues"
+  },
+  "homepage": "https://github.com/Rohit78-arch/online-college-voting#readme"
+}
