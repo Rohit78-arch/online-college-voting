@@ -25,7 +25,9 @@ const userSchema = new mongoose.Schema(
 
     email: { type: String, required: true, lowercase: true, trim: true, unique: true },
     mobile: { type: String, required: true, trim: true, unique: true },
-
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
+ 
     // Credential
     passwordHash: { type: String, required: true, select: false },
 

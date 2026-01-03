@@ -1,5 +1,4 @@
 import { RouterProvider } from "react-router-dom"
-
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/context/AuthContext"

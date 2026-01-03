@@ -15,6 +15,11 @@ const { requireAuth } = require('../middlewares/auth');
 
 const router = express.Router();
 
+const { forgotPassword, resetPassword } = require('../controllers/passwordController');
+
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
+
 // Registration
 router.post('/register/voter', registerVoter);
 router.post('/register/candidate', registerCandidate);
