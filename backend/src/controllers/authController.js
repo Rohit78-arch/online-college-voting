@@ -40,7 +40,7 @@ const registerVoter = asyncHandler(async (req, res) => {
     email: body.email,
     mobile: body.mobile,
     role: ROLES.VOTER,
-    approvalStatus: APPROVAL_STATUS.PENDING,
+    approvalStatus: APPROVAL_STATUS.APPROVED,
     enrollmentId: body.enrollmentId,
     scholarOrRollNumber: body.scholarOrRollNumber,
     department: body.department,
@@ -168,14 +168,20 @@ const login = asyncHandler(async (req, res) => {
   if (!ok) throw new ApiError(401, 'Invalid credentials');
 
   // Verification gate
-  if (!user.isEmailVerified || !user.isMobileVerified) {
-    throw new ApiError(403, 'Please verify Email & Mobile OTP before logging in.');
-  }
+ if (
+  user.role === ROLES.CANDIDATE &&
+  (!user.isEmailVerified || !user.isMobileVerified)
+) {
+  throw new ApiError(403, 'Please verify Email & Mobile OTP before logging in.');
+}
+
 
   // Approval gate for students
-  if ([ROLES.VOTER, ROLES.CANDIDATE].includes(user.role) && user.approvalStatus !== APPROVAL_STATUS.APPROVED) {
-    throw new ApiError(403, 'Your account is pending admin approval.');
-  }
+  
+  if (user.role === ROLES.CANDIDATE && user.approvalStatus !== APPROVAL_STATUS.APPROVED) {
+  throw new ApiError(403, 'Candidate approval pending.');
+}
+
 
   user.lastLoginAt = new Date();
   await user.save();
